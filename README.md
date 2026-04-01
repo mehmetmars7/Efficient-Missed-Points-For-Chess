@@ -4,24 +4,24 @@ Calculate **Game Intelligence (GI)** and **Missed Points (MP)** from engine-anno
 
 ## Scripts
 
-### `calculate_mp.py` — Missed Points
+### `missed_points.py` — Missed Points
 **No external dependencies.** Pure Python stdlib.
 
 Missed Points (MP) is the total expected game-point loss accumulated over all moves. A lower MP means fewer points were left on the board.
 
 ```
-python calculate_mp.py game1.pgn game2.pgn ...
-python calculate_mp.py          # processes all *.pgn files next to the script
+python missed_points.py game1.pgn game2.pgn ...
+python missed_points.py          # processes all *.pgn files in sample_games/
 ```
 
-### `calculate_gi.py` — Game Intelligence
+### `game_intelligence.py` — Game Intelligence
 **No external dependencies.** Pure Python stdlib.
 
 Game Intelligence (GI) measures how well a player converted their position relative to the game result. Normalized to a 0–200 scale (population average ≈ 157.57).
 
 ```
-python calculate_gi.py game1.pgn game2.pgn ...
-python calculate_gi.py          # processes all *.pgn files next to the script
+python game_intelligence.py game1.pgn game2.pgn ...
+python game_intelligence.py          # processes all *.pgn files in sample_games/
 ```
 
 ### `stockfish_pgn_annotator.py` — PGN Annotator
@@ -31,7 +31,7 @@ python calculate_gi.py          # processes all *.pgn files next to the script
 pip install chess
 ```
 
-Walks an input directory, annotates every PGN with `[%eval X.XX]` comments using Stockfish, and writes the results to an output directory. The annotated PGNs are directly compatible with `calculate_mp.py` and `calculate_gi.py`.
+Walks an input directory, annotates every PGN with `[%eval X.XX]` comments using Stockfish, and writes the results to an output directory. The annotated PGNs are directly compatible with `missed_points.py` and `game_intelligence.py`.
 
 ```
 python stockfish_pgn_annotator.py \
@@ -48,6 +48,7 @@ python stockfish_pgn_annotator.py \
 | `--stockfish` | Path to Stockfish binary | required |
 | `--depth` | Search depth | 20 |
 
+
 ---
 
 ## Typical workflow
@@ -57,15 +58,15 @@ python stockfish_pgn_annotator.py \
 python stockfish_pgn_annotator.py --input games/ --output annotated/ --stockfish ./stockfish --depth 20
 
 # Step 2 — calculate MP and GI from the annotated files
-python calculate_mp.py annotated/my_game_annotated.pgn
-python calculate_gi.py annotated/my_game_annotated.pgn
+python missed_points.py annotated/my_game_annotated.pgn
+python game_intelligence.py annotated/my_game_annotated.pgn
 ```
 
 ---
 
 ## WDL model
 
-Both `calculate_mp.py` and `calculate_gi.py` use the **Stockfish 16.1 WDL model** at fixed ply=30, ported directly from [`python-chess`](https://github.com/niklasf/python-chess/blob/master/chess/engine.py) — no `python-chess` install required. The sigmoid formula converts centipawn evaluations to win/draw/loss probabilities:
+Both `missed_points.py` and `game_intelligence.py` use a hardcoded WDL model at fixed ply=30, ported directly from [`python-chess`](https://github.com/niklasf/python-chess/blob/master/chess/engine.py) — no `python-chess` install required. The sigmoid formula converts centipawn evaluations to win/draw/loss probabilities:
 
 ```
 wins = floor(0.5 + 1000 / (1 + exp((a - x) / b)))
